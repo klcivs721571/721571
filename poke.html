@@ -1,0 +1,100 @@
+<h1>Pokedex</h1>
+<div class="poke-container" id="poke-container"></div>
+
+<script>
+const container = document.getElementById("poke-container");
+const pokemon_count = 150; //要抓的寶可夢的總數
+const colors = {
+  fire: "#FDDFDF",
+  grass: "#DEFDE0",
+  electric: "#FCF7DE",
+  water: "#DEF3FD",
+  ground: "#f4e7da",
+  rock: "#d5d5d4",
+  fairy: "#fceaff",
+  poison: "#98d7a5",
+  bug: "#f8d5a3",
+  dragon: "#97b3e6",
+  psychic: "#eaeda1",
+  flying: "#F5F5F5",
+  fighting: "#E6E0D4",
+  normal: "#F5F5F5"
+};
+
+const fetchPokemons = async () => {
+  for (let i = 1; i <= pokemon_count; i++) {
+    await getPokemon(i);
+  }
+};
+
+const getPokemon = async (id) => {
+  const url = `https://pokeapi.co/api/v2/pokemon/${id}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  createPokemonCard(data);
+  console.log(data);
+};
+
+const mainType = Object.keys(colors);
+
+const createPokemonCard = (pokemon) => {
+  const pokemonEl = document.createElement("div");
+  pokemonEl.classList.add("pokemon");
+  const id = pokemon.id.toString().padStart(3, "0");
+  const name = pokemon.name[0].toUpperCase() + pokemon.name.slice(1);
+  const pokemonType = pokemon.types.map((type) => type.type.name);
+  const type = mainType.find((type) => pokemonType.indexOf(type) != -1);
+  const color = colors[type];
+  pokemonEl.style.backgroundColor = color;
+
+  // 增加圖片元素
+  const imgContainer = document.createElement("div");
+  imgContainer.classList.add("img-container");
+
+  const img = document.createElement("img");
+  img.setAttribute("data-src", `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`);
+  img.setAttribute("alt", name);
+  imgContainer.appendChild(img);
+
+  pokemonEl.appendChild(imgContainer);
+
+  const pokemonInnerHTML = `
+    <div class="info">
+      <span class="number">#${id}</span>
+      <span class="name">${name}</span>
+      <small class="type"> <span>${type}</span> </small>
+    </div>
+  `;
+
+  pokemonEl.innerHTML += pokemonInnerHTML;
+  container.appendChild(pokemonEl);
+};
+
+// 監聽滾動事件
+window.addEventListener("scroll", lazyLoadImages);
+
+// 檢查圖片是否進入視窗範圍
+function lazyLoadImages() {
+  const images = document.querySelectorAll("img[data-src]");
+
+  for (const image of images) {
+    if (isElementInViewport(image)) {
+      image.setAttribute("src", image.getAttribute("data-src"));
+      image.removeAttribute("data-src");
+    }
+  }
+}
+
+// 判斷元素是否進入視窗範圍
+function isElementInViewport(el) {
+  const rect = el.getBoundingClientRect();
+  return (
+    rect.top >= 0 &&
+    rect.left >= 0 &&
+    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+  );
+}
+
+fetchPokemons();
+</script>
